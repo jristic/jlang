@@ -218,6 +218,7 @@ ASTNode* ParseBuffer(
 		buffer_start,
 		buffer_end,
 		&buffer_read);
+	buffer_read = SkipWhitespace(buffer_read, buffer_end);
 	assert( buffer_end == buffer_read, "not all of the buffer was consumed");
 	return ast;
 }
