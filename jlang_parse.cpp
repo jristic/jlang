@@ -1,12 +1,12 @@
 
 #include <cctype>
+#include <math.h>
+#include <cstring>
 
 namespace Parse
 {
 
-const int MAX_AST_NODES = 1024;
-enum Token
-{
+enum Token {
 	TOKEN_LPAREN,
 	TOKEN_RPAREN,
 	TOKEN_IDENTIFIER,
@@ -18,64 +18,63 @@ struct Identifier {
 	int string_len;
 };
 
+const int MAX_AST_NODES = 1024;
 ASTNode ASTNodePool[MAX_AST_NODES];
 int num_allocated_ast_nodes = 0;
 
-ASTNode* AllocASTNode()
-{
+ASTNode* AllocASTNode() {
 	int ret_index = num_allocated_ast_nodes;
 	++num_allocated_ast_nodes;
 	assert(num_allocated_ast_nodes < MAX_AST_NODES, "out of ast nodes");
 	return &ASTNodePool[ret_index];
 }
 
-int SkipWhitespace(
-	char* buffer,
-	int buffer_start,
-	int buffer_len)
+bool CompareIdentifier(Identifier id, const char* string) {
+	if (id.string_len != strlen(string))
+		return false;
+	for (int i = 0 ; i < id.string_len ; ++i)
+		if (id.string[i] != string[i])
+			return false;
+	return true;
+}
+
+char* SkipWhitespace(
+	char* buffer_start,
+	char* buffer_end)
 {
-	int buffer_next = buffer_start;
-	while (buffer_next < buffer_len &&
-		isspace(buffer[buffer_next]))
-	{
+	char* buffer_next = buffer_start;
+	while (buffer_next < buffer_end && isspace(*buffer_next)) {
 		++buffer_next;
 	}
 	return buffer_next;
 }
 
 Token GetNextToken(
-	char* buffer,
-	int buffer_start,
-	int buffer_len,
-	int* out_characters_read)
+	char* buffer_start,
+	char* buffer_end,
+	char** out_buffer_read)
 {
-	int buffer_next = buffer_start;
+	char* buffer_next = buffer_start;
 	Token retval;
 
-	if (buffer[buffer_next] == '(') {
+	if (*buffer_next == '(') {
 		++buffer_next;
 		retval = TOKEN_LPAREN;
 	}
-	else if (buffer[buffer_next] == ')') {
+	else if (*buffer_next == ')') {
 		++buffer_next;
 		retval = TOKEN_RPAREN;
 	}
-	else if (isdigit(buffer[buffer_next])) {
+	else if (isdigit(*buffer_next)) {
 		++buffer_next;
-		while(buffer_next < buffer_len &&
-			isdigit(buffer[buffer_next])) 
-		{
+		while(buffer_next < buffer_end && isdigit(*buffer_next))
 			++buffer_next;
-		}
 		retval = TOKEN_INTEGER_LITERAL;
 	}
-	else if (islower(buffer[buffer_next]) 
-		|| isupper(buffer[buffer_next]))
-	{
+	else if (islower(*buffer_next) || isupper(*buffer_next)) {
 		++buffer_next;
-		while (buffer_next < buffer_len &&
-			(islower(buffer[buffer_next]) || 
-			isupper(buffer[buffer_next]))) 
+		while (buffer_next < buffer_end &&
+			(islower(*buffer_next) || isupper(*buffer_next))) 
 		{
 			++buffer_next;
 		}
@@ -83,63 +82,143 @@ Token GetNextToken(
 	}
 	else {
 		assert(false, "unexpected character when reading token: %c",
-			buffer[buffer_next]);
+			*buffer_next);
 	}
 
-	*out_characters_read = buffer_next - buffer_start;
+	*out_buffer_read = buffer_next;
 	return retval;
 }
 
-Identifier GetIdentifier(
-	char* buffer,
-	int buffer_start,
-	int buffer_len,
-	int* out_characters_read)
+char* ConsumeToken(
+	Token tok,
+	char* buffer_start,
+	char* buffer_end)
 {
-	int buffer_next = buffer_start;
-	while (buffer_next < buffer_len &&
-		(islower(buffer[buffer_next]) || 
-		isupper(buffer[buffer_next]))) 
+	char* buffer_next = buffer_start;
+	buffer_next =  SkipWhitespace(buffer_start, buffer_end);
+	char* buffer_read;
+	Token found_tok = GetNextToken(buffer_next, buffer_end, &buffer_read);
+	assert(found_tok == tok, "unexpected token, expected %d found %d",
+		tok, found_tok);
+	return buffer_read;
+}
+
+Identifier GetIdentifier(
+	char* buffer_start,
+	char* buffer_end,
+	char** out_buffer_read)
+{
+	char* buffer_next = buffer_start;
+	while (buffer_next < buffer_end &&
+		(islower(*buffer_next) || isupper(*buffer_next))) 
 	{
 		++buffer_next;
 	}
 	Identifier id;
-	id.string = buffer + buffer_start;
+	id.string = buffer_start;
 	id.string_len = buffer_next - buffer_start;
+	*out_buffer_read = buffer_next;
 	return id;
 }
 
-ASTNode* ParseBuffer(
-	char* buffer,
-	int buffer_start,
-	int buffer_len,
-	int* out_bytes_read)
+int GetIntegerLiteral(
+	char* buffer_start,
+	char* buffer_end,
+	char** out_buffer_read)
 {
-	int buffer_next = buffer_start;
-	while (buffer_next < buffer_len) {
-		buffer_next = SkipWhitespace(buffer, buffer_next, buffer_len);
-		int tok_size;
-		Token tok = GetNextToken(buffer, buffer_next, buffer_len, &tok_size);
-		buffer_next += tok_size;
-		printf("%d %d \n", tok, tok_size);
-		buffer_next = SkipWhitespace(buffer, buffer_next, buffer_len);
+	char* buffer_next = buffer_start;
+	int len = 0;
+	while (buffer_next < buffer_end && isdigit(*buffer_next)) {
+		++buffer_next;
+		++len;
 	}
-	*out_bytes_read = buffer_next - buffer_start;
-	return null;
+	buffer_next = buffer_start;
+	int val = 0;
+	int base = pow(10, len-1);
+	while (buffer_next < buffer_end && isdigit(*buffer_next)) {
+		val += (*buffer_next - '0') * base;
+		base /= 10;
+		++buffer_next;
+	}
+	*out_buffer_read = buffer_next;
+	return val;
+}
+
+ASTNode* ParseBuffer(
+	char* buffer_start,
+	char* buffer_end,
+	char** out_buffer_read)
+{
+	ASTNode* ast = AllocASTNode();
+	char* buffer_next = buffer_start;
+	buffer_next = SkipWhitespace(buffer_start,buffer_end);
+	assert(buffer_next < buffer_end, "end-of-file while expecting expression");
+
+	char* tok_read;
+	char* tok_start = buffer_next;
+	Token tok = GetNextToken(buffer_next, buffer_end, &tok_read);
+	buffer_next = tok_read;
+
+	if (tok == TOKEN_INTEGER_LITERAL) {
+		ast->type = AST_NODE_TYPE_INTEGER_LITERAL;
+		char* lit_read;
+		ast->literal_val = GetIntegerLiteral(tok_start,buffer_end,
+			&lit_read);
+		printf("%d\n", ast->literal_val);
+		assert(tok_read == lit_read,
+			"bad literal parse, tok_read=0x%p, lit_read=%p",
+			tok_read, lit_read);
+		char* dummy;
+		assert(isspace(*buffer_next) || 
+			GetNextToken(buffer_next, buffer_end, &dummy) == TOKEN_RPAREN,
+			"delimiter expected after integer literal");
+	}
+	else if (tok == TOKEN_LPAREN) {
+		buffer_next = SkipWhitespace(buffer_next, buffer_end);
+		char* tok_read;
+		Token tok = GetNextToken(buffer_next, buffer_end, &tok_read);
+		assert(tok == TOKEN_IDENTIFIER, "unexpected token (wanted identifier)");
+		ASTNodeType node_type;
+		ASTNode *exp0, *exp1;
+		char* id_read;
+		Identifier id = GetIdentifier(buffer_next, buffer_end, &id_read);
+		assert(id_read == tok_read, "tok and id size mismatch");
+		buffer_next = tok_read;
+		if (CompareIdentifier(id, "print")) {
+			node_type = AST_NODE_TYPE_PRINT;
+			buffer_next = SkipWhitespace(buffer_next, buffer_end);
+			char* buffer_read;
+			exp0 = ParseBuffer(buffer_next, buffer_end, &buffer_read);
+			buffer_next = buffer_read;
+		}
+		else {
+			assert(false, "unexpected literal");
+		}
+		buffer_next = ConsumeToken(TOKEN_RPAREN, buffer_next, buffer_end);
+		ast->type = node_type;
+		ast->exp0 = exp0;
+		ast->exp1 = exp1;
+	}
+	else {
+		assert(false, "unexpected token: %d", tok);
+	}
+
+	*out_buffer_read = buffer_next;
+	return ast;
 }
 
 ASTNode* ParseBuffer(
 	char* buffer,
 	int buffer_len)
 {
-	int bytes_read;
-	int buffer_start = 0;
+	char* buffer_read;
+	char* buffer_start = buffer;
+	char* buffer_end = buffer + buffer_len;
 	ASTNode* ast = ParseBuffer(
-		buffer,
 		buffer_start,
-		buffer_len,
-		&bytes_read);
-	assert(bytes_read == buffer_len, "not all of the buffer was consumed");
+		buffer_end,
+		&buffer_read);
+	assert( buffer_end == buffer_read, "not all of the buffer was consumed");
 	return ast;
 }
 

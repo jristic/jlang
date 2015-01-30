@@ -2,6 +2,7 @@
 namespace Parse
 {
 	enum ASTNodeType {
+		AST_NODE_TYPE_INTEGER_LITERAL,
 		AST_NODE_TYPE_ADD,
 		AST_NODE_TYPE_SUB,
 		AST_NODE_TYPE_MUL,
