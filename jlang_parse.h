@@ -7,7 +7,6 @@ namespace Parse
 		AST_NODE_TYPE_SUB,
 		AST_NODE_TYPE_MUL,
 		AST_NODE_TYPE_DIV,
-		AST_NODE_TYPE_PRINT,
 	};
 
 	struct ASTNode {

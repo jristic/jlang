@@ -1,0 +1,15 @@
+{
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"path": "."
+		}
+	],
+	"build systems":
+	[
+		{
+			"shell_cmd" : "~/dev/jlang/build.sh"
+		}
+	]
+}

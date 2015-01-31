@@ -1,1 +1,4 @@
-(print (print 4))
+(add 
+	22
+	(mul 5 4)
+) 
