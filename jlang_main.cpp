@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 
 	if (interp) {
 		Interp::InterpResult interp_result = Interp::InterpAST(program_ast);
-		printf("INTERP RESULT: %d \n", interp_result.intResult);
+		printf("INTERP RESULT:\n%d\n", interp_result.intResult);
 	}
 }
 
