@@ -1,8 +1,15 @@
 
+math.randomseed( os.time() )
+
 local testFailMessages = {
 	"HOLY COW BADMAN TEST FAIL",
 	"GREAT SCOTT THIS TEST HAS GONE SOUTH",
-	"GADZOOKS TEST FAIL"
+	"GADZOOKS TEST FAIL",
+	"TESTY MCTESTERSON HAS FAILED IN HIS QUEST",
+	"WHAT A HORRIBLE NIGHT TO HAVE A TEST FAIL",
+	"NaNNanNaNNaNNaN WATMAN (oh, right, that's why we're here... a test failed)",
+	"BABABOOIE BABABOOIE BABABOOIE BABABOOIE",
+	"SHOES SHOES SHOES FAIL"
 }
 
 -- http://stackoverflow.com/questions/5303174/get-list-of-directory-in-a-lua
@@ -43,5 +50,5 @@ end
 
 print("Tests passed " .. testPassCount .. "/" .. testCount)
 if testPassCount < testCount then
-	print("GREAT SCOTT THIS TEST HAS GONE SOUTH OLD CHAP")
+	print(testFailMessages[math.random(#testFailMessages)])
 end
