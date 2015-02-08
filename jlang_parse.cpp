@@ -239,21 +239,25 @@ ASTNode* ParseExpression(
 	return ast;
 }
 
-ASTNode* ParseBuffer(
+Vector<ASTNode*> ParseBuffer(
 	char* buffer,
 	int buffer_len)
 {
 	char* buffer_read;
-	char* buffer_start = buffer;
+	char* buffer_next = buffer;
 	char* buffer_end = buffer + buffer_len;
-	ASTNode* ast = ParseExpression(
-		buffer_start,
-		buffer_end,
-		&buffer_read);
-	// TODO(jovanr): read multiple expressions
+	Vector<ASTNode*> rets;
+	while (buffer_next != buffer_end) {
+		ASTNode* ast = ParseExpression(
+			buffer_next,
+			buffer_end,
+			&buffer_read);
+		rets.push_back(ast);
+		buffer_next = SkipWhitespace(buffer_read, buffer_end);
+	}
 	buffer_read = SkipWhitespace(buffer_read, buffer_end);
-	assert( buffer_end == buffer_read, "not all of the buffer was consumed");
-	return ast;
+	assert(buffer_end == buffer_read, "not all of the buffer was consumed");
+	return rets;
 }
 
 }

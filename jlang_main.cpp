@@ -1,10 +1,8 @@
-#include "jlang_file.h"
-#include "jlang_parse.h"
-#include "jlang_interp.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
+
+#include <vector>
 
 #define null 0
 #define assert(expression, message, ...) 				\
@@ -23,9 +21,17 @@
 
 const char* jlang_usage = "USAGE: jlang [-i] [-o output_file] input_file";
 
-typedef unsigned int uint;
 
-int main(int argc, char* argv[]) {
+template<typename T>
+using Vector = std::vector<T>;
+
+#include "jlang_file.h"
+#include "jlang_parse.h"
+#include "jlang_interp.h"
+
+
+int main(int argc, char* argv[]) 
+{
 	assert(argc >= 2 && argc <= 3, "wrong number of args \n%s", jlang_usage);
 
 	bool interp = false;
@@ -43,7 +49,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	const uint MAX_INPUT_FILE_SIZE = 1024 * 1024;
+	const int MAX_INPUT_FILE_SIZE = 1024 * 1024;
 	char input_buffer[MAX_INPUT_FILE_SIZE];
 	int input_len = 0;
 
@@ -54,11 +60,14 @@ int main(int argc, char* argv[]) {
 		MAX_INPUT_FILE_SIZE);
 	printf("INPUT PROGRAM: \n%s \n", input_buffer);
 
-	Parse::ASTNode* program_ast = Parse::ParseBuffer(input_buffer, input_len);
+	Vector<Parse::ASTNode*> program_ast = Parse::ParseBuffer(input_buffer, input_len);
 
 	if (interp) {
-		Interp::InterpResult interp_result = Interp::InterpAST(program_ast);
-		printf("INTERP RESULT:\n%d\n", interp_result.intResult);
+		printf("INTERP RESULT:\n");
+		for (Parse::ASTNode* ast : program_ast) {
+			Interp::InterpResult interp_result = Interp::InterpAST(ast);
+			printf("%d\n", interp_result.intResult);
+		}
 	}
 }
 

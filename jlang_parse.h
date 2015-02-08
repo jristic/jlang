@@ -19,7 +19,7 @@ namespace Parse
 		};
 	};
 
-	ASTNode* ParseBuffer(
+	Vector<ASTNode*> ParseBuffer(
 		char* buffer,
 		int buffer_len);
 }

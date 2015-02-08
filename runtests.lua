@@ -33,16 +33,17 @@ for _,v in pairs(scandir("test")) do
 		local filename = "test/" .. v
 		io.input(filename)
 		local testFile = "test/" .. io.read("*line")
-		local expectedOut = io.read("*all")
+		-- The extra newline is to match the program
+		local expectedOut = io.read("*all") .. "\n" 
 		local programOut = io.popen("./jlang -i " .. testFile):read("*all")
-		local interpOut = programOut:gsub(".*INTERP RESULT:", ""):gsub("%s", "")
+		local interpOut = programOut:gsub(".*INTERP RESULT:\n", "")
 		if expectedOut == interpOut then
 			testPassCount = testPassCount + 1
 			print(testFile ..  "\t\t.... passed")
 		else
 			print(testFile, ".... FAILED!")
-			print("EXPECTED: " .. expectedOut)
-			print("ACTUAL: " .. interpOut)
+			print("EXPECTED: \n" .. expectedOut)
+			print("ACTUAL: \n" .. interpOut)
 		end
 		testCount = testCount + 1
 	end
