@@ -1,2 +1,2 @@
 ./build
-lua __runtests.lua
+lua runtests.lua

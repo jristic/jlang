@@ -95,7 +95,7 @@ char* ConsumeToken(
 	char* buffer_end)
 {
 	char* buffer_next = buffer_start;
-	buffer_next =  SkipWhitespace(buffer_start, buffer_end);
+	buffer_next = SkipWhitespace(buffer_start, buffer_end);
 	char* buffer_read;
 	Token found_tok = GetNextToken(buffer_next, buffer_end, &buffer_read);
 	assert(found_tok == tok, "unexpected token, expected %d found %d",
@@ -185,41 +185,33 @@ ASTNode* ParseExpression(
 		buffer_next = tok_read;
 		if (CompareIdentifier(id, "add")) {
 			node_type = AST_NODE_TYPE_ADD;
-			buffer_next = SkipWhitespace(buffer_next, buffer_end);
 			char* buffer_read;
 			exp0 = ParseExpression(buffer_next, buffer_end, &buffer_read);
 			buffer_next = buffer_read;
-			buffer_next = SkipWhitespace(buffer_next, buffer_end);
 			exp1 = ParseExpression(buffer_next, buffer_end, &buffer_read);
 			buffer_next = buffer_read;
 		}
 		else if (CompareIdentifier(id, "sub")) {
 			node_type = AST_NODE_TYPE_SUB;
-			buffer_next = SkipWhitespace(buffer_next, buffer_end);
 			char* buffer_read;
 			exp0 = ParseExpression(buffer_next, buffer_end, &buffer_read);
 			buffer_next = buffer_read;
-			buffer_next = SkipWhitespace(buffer_next, buffer_end);
 			exp1 = ParseExpression(buffer_next, buffer_end, &buffer_read);
 			buffer_next = buffer_read;
 		}
 		else if (CompareIdentifier(id, "mul")) {
 			node_type = AST_NODE_TYPE_MUL;
-			buffer_next = SkipWhitespace(buffer_next, buffer_end);
 			char* buffer_read;
 			exp0 = ParseExpression(buffer_next, buffer_end, &buffer_read);
 			buffer_next = buffer_read;
-			buffer_next = SkipWhitespace(buffer_next, buffer_end);
 			exp1 = ParseExpression(buffer_next, buffer_end, &buffer_read);
 			buffer_next = buffer_read;
 		}
 		else if (CompareIdentifier(id, "div")) {
 			node_type = AST_NODE_TYPE_DIV;
-			buffer_next = SkipWhitespace(buffer_next, buffer_end);
 			char* buffer_read;
 			exp0 = ParseExpression(buffer_next, buffer_end, &buffer_read);
 			buffer_next = buffer_read;
-			buffer_next = SkipWhitespace(buffer_next, buffer_end);
 			exp1 = ParseExpression(buffer_next, buffer_end, &buffer_read);
 			buffer_next = buffer_read;
 		}
@@ -255,8 +247,6 @@ Vector<ASTNode*> ParseBuffer(
 		rets.push_back(ast);
 		buffer_next = SkipWhitespace(buffer_read, buffer_end);
 	}
-	buffer_read = SkipWhitespace(buffer_read, buffer_end);
-	assert(buffer_end == buffer_read, "not all of the buffer was consumed");
 	return rets;
 }
 
